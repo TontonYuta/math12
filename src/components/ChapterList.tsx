@@ -32,7 +32,7 @@ export const ChapterList: React.FC<ChapterListProps> = ({ chapters, onSelectTopi
   return (
     <div className="w-full max-w-2xl mx-auto p-4 space-y-6">
       <div className="text-center mb-10">
-        <h1 className="text-4xl font-extrabold text-slate-900 dark:text-white mb-2 tracking-tight">Toán Lớp 7</h1>
+        <h1 className="text-4xl font-extrabold text-slate-900 dark:text-white mb-2 tracking-tight">Toán Lớp 12</h1>
         <p className="text-slate-500 dark:text-slate-400 font-medium text-lg">Lộ trình học tập thông minh</p>
       </div>
 
