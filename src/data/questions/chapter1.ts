@@ -1,6 +1,7 @@
 import { Topic } from '../../types';
+import { chapter1ExamTopics } from './chapter1-exams';
 
-export const chapter1Topics: Topic[] = [
+export const chapter1CoreTopics: Topic[] = [
   {
     id: 'c1-t1',
     title: 'Tính đơn điệu của hàm số',
@@ -186,8 +187,8 @@ export const chapter1Topics: Topic[] = [
         id: 'q1-3-3',
         text: 'Cho hàm số $y=x^2-2x+3$ trên đoạn $[0;2]$. GTLN của hàm số là:',
         options: ['2', '3', '4', '5'],
-        correctAnswerIndex: 2,
-        explanation: 'Ta có $y(0)=3, y(1)=2, y(2)=3$. Nếu xét đúng biểu thức thì GTLN là 3. Do đó để nhất quán bài chuẩn nên hàm này GTLN là 3.'
+        correctAnswerIndex: 1,
+        explanation: 'Ta có $y(0)=3, y(1)=2, y(2)=3$, nên GTLN của hàm số trên đoạn là 3.'
       },
       {
         id: 'q1-3-4',
@@ -214,8 +215,8 @@ export const chapter1Topics: Topic[] = [
         id: 'q1-3-7',
         text: 'Cho hàm số $y=x^3-3x$ trên đoạn $[-2;2]$. GTLN của hàm số là:',
         options: ['2', '-2', '4', '-4'],
-        correctAnswerIndex: 2,
-        explanation: 'Tính tại $x=-2,-1,1,2$: được $-2,2,-2,2$. Bài này thực ra GTLN là 2. Nếu muốn chuẩn, đáp án đúng phải là 2.'
+        correctAnswerIndex: 0,
+        explanation: 'Tính tại các điểm cần xét: $y(-2)=-2, y(-1)=2, y(1)=-2, y(2)=2$, nên GTLN là 2.'
       },
       {
         id: 'q1-3-8',
@@ -446,4 +447,9 @@ export const chapter1Topics: Topic[] = [
       }
     ]
   }
+];
+
+export const chapter1Topics: Topic[] = [
+  ...chapter1CoreTopics,
+  ...chapter1ExamTopics
 ];
