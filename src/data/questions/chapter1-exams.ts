@@ -67,6 +67,7 @@ export const chapter1ExamTopics: Topic[] = [
       options: ['$y=x^2$', '$y=x^3$', '$y=x^4$', '$y=-x^2$'],
       correctAnswerIndex: 1,
       explanation: 'Hàm số $y=x^3$ có đạo hàm bằng 0 tại $x=0$ nhưng không đổi dấu, nên không có cực trị.',
+
       source: {
         title: '30 đề tổng ôn tập chương ứng dụng đạo hàm',
         page: 4,
@@ -81,6 +82,13 @@ export const chapter1ExamTopics: Topic[] = [
       options: ['$x=-7$', '$x=-4$', '$x=-3$', '$x=-6$'],
       correctAnswerIndex: 0,
       explanation: 'Điểm cực đại xuất hiện tại nơi đạo hàm đổi dấu từ dương sang âm, nên là $x=-7$.',
+              images: [
+        {
+          src: '/question-assets/c1/de1/p1-q5.png',
+          alt: 'Bảng biến thiên câu 5 đề 1',
+          caption: 'Hình minh họa câu 5'
+        }
+      ],
       source: {
         title: '30 đề tổng ôn tập chương ứng dụng đạo hàm',
         page: 4,
@@ -130,6 +138,13 @@ export const chapter1ExamTopics: Topic[] = [
       options: ['4', '1', '2', '3'],
       correctAnswerIndex: 3,
       explanation: 'Theo bảng biến thiên, có 1 tiệm cận đứng và 2 tiệm cận ngang, tổng là 3.',
+            images: [
+        {
+          src: '/question-assets/c1/de1/p1-q8.png',
+          alt: 'Bảng biến thiên câu 8 đề 1',
+          caption: 'Hình minh họa câu 8'
+        }
+      ],
       source: {
         title: '30 đề tổng ôn tập chương ứng dụng đạo hàm',
         page: 5,

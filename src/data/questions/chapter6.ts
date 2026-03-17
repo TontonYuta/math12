@@ -1,11 +1,12 @@
 import { Topic } from '../../types';
+import { chapter6ExamTopics } from './chapter6-exams';
 
-export const chapter6Topics: Topic[] = [
+export const chapter6CoreTopics: Topic[] = [
   {
     id: 'c6-t1',
     title: 'Phép thử ngẫu nhiên và không gian mẫu',
     description: 'Nhận biết phép thử, kết quả có thể xảy ra và xác định không gian mẫu.',
-    youtubeUrl: 'https://www.youtube.com/watch?v=gVtCC8a5sDE',
+    youtubeUrl: 'https://www.youtube.com/watch?v=Nibwpe-MEA4&list=RDNibwpe-MEA4&start_radio=1',
     questions: [
       {
         id: 'q6-1-1',
@@ -98,7 +99,7 @@ export const chapter6Topics: Topic[] = [
     id: 'c6-t2',
     title: 'Xác suất của biến cố',
     description: 'Tính xác suất của biến cố trong mô hình đồng khả năng.',
-    youtubeUrl: 'https://www.youtube.com/watch?v=gVtCC8a5sDE',
+    youtubeUrl: 'https://www.youtube.com/watch?v=Nibwpe-MEA4&list=RDNibwpe-MEA4&start_radio=1',
     questions: [
       {
         id: 'q6-2-1',
@@ -181,7 +182,7 @@ export const chapter6Topics: Topic[] = [
     id: 'c6-t3',
     title: 'Quy tắc cộng xác suất',
     description: 'Tính xác suất của hợp hai biến cố bằng quy tắc cộng.',
-    youtubeUrl: 'https://www.youtube.com/watch?v=gVtCC8a5sDE',
+    youtubeUrl: 'https://www.youtube.com/watch?v=Nibwpe-MEA4&list=RDNibwpe-MEA4&start_radio=1',
     questions: [
       {
         id: 'q6-3-1',
@@ -274,7 +275,7 @@ export const chapter6Topics: Topic[] = [
     id: 'c6-t4',
     title: 'Biến cố đối và quy tắc nhân xác suất',
     description: 'Sử dụng biến cố đối và quy tắc nhân trong các bài toán xác suất cơ bản.',
-    youtubeUrl: 'https://www.youtube.com/watch?v=gVtCC8a5sDE',
+    youtubeUrl: 'https://www.youtube.com/watch?v=Nibwpe-MEA4&list=RDNibwpe-MEA4&start_radio=1',
     questions: [
       {
         id: 'q6-4-1',
@@ -367,7 +368,7 @@ export const chapter6Topics: Topic[] = [
     id: 'c6-t5',
     title: 'Ôn tập chương Các quy tắc tính xác suất',
     description: 'Củng cố không gian mẫu, xác suất, quy tắc cộng, quy tắc nhân và biến cố đối.',
-    youtubeUrl: 'https://www.youtube.com/watch?v=gVtCC8a5sDE',
+    youtubeUrl: 'https://www.youtube.com/watch?v=Nibwpe-MEA4&list=RDNibwpe-MEA4&start_radio=1',
     questions: [
       {
         id: 'q6-5-1',
@@ -441,4 +442,9 @@ export const chapter6Topics: Topic[] = [
       }
     ]
   }
+];
+
+export const chapter6Topics: Topic[] = [
+  ...chapter6CoreTopics,
+  ...chapter6ExamTopics
 ];

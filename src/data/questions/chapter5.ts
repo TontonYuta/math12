@@ -1,11 +1,12 @@
 import { Topic } from '../../types';
+import { chapter5ExamTopics } from './chapter5-exams';
 
-export const chapter5Topics: Topic[] = [
+export const chapter5CoreTopics: Topic[] = [
   {
     id: 'c5-t1',
     title: 'Biến cố và xác suất có điều kiện',
     description: 'Nhận biết biến cố, xác suất có điều kiện và ý nghĩa của nó.',
-    youtubeUrl: 'https://www.youtube.com/watch?v=gVtCC8a5sDE',
+    youtubeUrl: 'https://www.youtube.com/watch?v=Nibwpe-MEA4&list=RDNibwpe-MEA4&start_radio=1',
     questions: [
       {
         id: 'q5-1-1',
@@ -113,7 +114,7 @@ export const chapter5Topics: Topic[] = [
     id: 'c5-t2',
     title: 'Công thức nhân xác suất',
     description: 'Tính xác suất giao của hai biến cố bằng công thức nhân.',
-    youtubeUrl: 'https://www.youtube.com/watch?v=gVtCC8a5sDE',
+    youtubeUrl: 'https://www.youtube.com/watch?v=Nibwpe-MEA4&list=RDNibwpe-MEA4&start_radio=1',
     questions: [
       {
         id: 'q5-2-1',
@@ -221,7 +222,7 @@ export const chapter5Topics: Topic[] = [
     id: 'c5-t3',
     title: 'Biến cố độc lập',
     description: 'Nhận biết và vận dụng tính độc lập của hai biến cố.',
-    youtubeUrl: 'https://www.youtube.com/watch?v=gVtCC8a5sDE',
+    youtubeUrl: 'https://www.youtube.com/watch?v=Nibwpe-MEA4&list=RDNibwpe-MEA4&start_radio=1',
     questions: [
       {
         id: 'q5-3-1',
@@ -289,10 +290,10 @@ export const chapter5Topics: Topic[] = [
       },
       {
         id: 'q5-3-8',
-        text: 'Trong gieo xúc xắc, A: “ra số chẵn”, B: “ra số lớn hơn 4”. Khi đó $P(A)=',
+        text: 'Trong gieo xúc xắc, A: “ra số chẵn”, B: “ra số lớn hơn 4”. Khi đó $P(A)$ bằng:',
         options: ['$\\dfrac{1}{2}$', '$\\dfrac{1}{3}$', '$\\dfrac{2}{3}$', '$\\dfrac{1}{6}$'],
         correctAnswerIndex: 0,
-        explanation: 'Các số chẵn là 2,4,6 nên có 3 kết quả thuận lợi trên 6 kết quả.'
+        explanation: 'Các số chẵn là 2, 4, 6 nên có 3 kết quả thuận lợi trên 6 kết quả.'
       },
       {
         id: 'q5-3-9',
@@ -306,7 +307,7 @@ export const chapter5Topics: Topic[] = [
         text: 'Trong ví dụ trên, $P(A\\cap B)$ bằng:',
         options: ['$\\dfrac{1}{6}$', '$\\dfrac{1}{3}$', '$\\dfrac{1}{2}$', '$\\dfrac{2}{3}$'],
         correctAnswerIndex: 0,
-        explanation: 'A\\cap B chỉ gồm kết quả 6, nên xác suất là $1/6$.'
+        explanation: '$A\\cap B$ chỉ gồm kết quả 6, nên xác suất là $1/6$.'
       }
     ]
   },
@@ -314,7 +315,7 @@ export const chapter5Topics: Topic[] = [
     id: 'c5-t4',
     title: 'Công thức xác suất toàn phần và Bayes',
     description: 'Làm quen công thức xác suất toàn phần và công thức Bayes ở mức cơ bản.',
-    youtubeUrl: 'https://www.youtube.com/watch?v=gVtCC8a5sDE',
+    youtubeUrl: 'https://www.youtube.com/watch?v=Nibwpe-MEA4&list=RDNibwpe-MEA4&start_radio=1',
     questions: [
       {
         id: 'q5-4-1',
@@ -437,7 +438,7 @@ export const chapter5Topics: Topic[] = [
     id: 'c5-t5',
     title: 'Ôn tập chương Xác suất có điều kiện',
     description: 'Củng cố công thức, nhận biết biến cố độc lập và vận dụng xác suất có điều kiện.',
-    youtubeUrl: 'https://www.youtube.com/watch?v=gVtCC8a5sDE',
+    youtubeUrl: 'https://www.youtube.com/watch?v=Nibwpe-MEA4&list=RDNibwpe-MEA4&start_radio=1',
     questions: [
       {
         id: 'q5-5-1',
@@ -536,4 +537,9 @@ export const chapter5Topics: Topic[] = [
       }
     ]
   }
+];
+
+export const chapter5Topics: Topic[] = [
+  ...chapter5CoreTopics,
+  ...chapter5ExamTopics
 ];

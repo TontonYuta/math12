@@ -6,7 +6,7 @@ export const chapter1CoreTopics: Topic[] = [
     id: 'c1-t1',
     title: 'Tính đơn điệu của hàm số',
     description: 'Xét dấu đạo hàm để xác định khoảng đồng biến, nghịch biến.',
-    youtubeUrl: 'https://www.youtube.com/watch?v=gVtCC8a5sDE',
+    youtubeUrl: 'https://www.youtube.com/watch?v=Nibwpe-MEA4&list=RDNibwpe-MEA4&start_radio=1',
     questions: [
       {
         id: 'q1-1-1',
@@ -84,7 +84,7 @@ export const chapter1CoreTopics: Topic[] = [
     id: 'c1-t2',
     title: 'Cực trị của hàm số',
     description: 'Tìm điểm cực đại, cực tiểu của hàm số bằng đạo hàm.',
-    youtubeUrl: 'https://www.youtube.com/watch?v=gVtCC8a5sDE',
+    youtubeUrl: 'https://www.youtube.com/watch?v=Nibwpe-MEA4&list=RDNibwpe-MEA4&start_radio=1',
     questions: [
       {
         id: 'q1-2-1',
@@ -162,7 +162,7 @@ export const chapter1CoreTopics: Topic[] = [
     id: 'c1-t3',
     title: 'Giá trị lớn nhất và giá trị nhỏ nhất của hàm số',
     description: 'Tìm GTLN, GTNN của hàm số trên đoạn hoặc miền xác định cho trước.',
-    youtubeUrl: 'https://www.youtube.com/watch?v=gVtCC8a5sDE',
+    youtubeUrl: 'https://www.youtube.com/watch?v=Nibwpe-MEA4&list=RDNibwpe-MEA4&start_radio=1',
     questions: [
       {
         id: 'q1-3-1',
@@ -250,7 +250,7 @@ export const chapter1CoreTopics: Topic[] = [
     id: 'c1-t4',
     title: 'Đường tiệm cận của đồ thị hàm số',
     description: 'Nhận biết và xác định tiệm cận đứng, tiệm cận ngang, tiệm cận xiên.',
-    youtubeUrl: 'https://www.youtube.com/watch?v=gVtCC8a5sDE',
+    youtubeUrl: 'https://www.youtube.com/watch?v=Nibwpe-MEA4&list=RDNibwpe-MEA4&start_radio=1',
     questions: [
       {
         id: 'q1-4-1',
@@ -338,7 +338,7 @@ export const chapter1CoreTopics: Topic[] = [
     id: 'c1-t5',
     title: 'Khảo sát sự biến thiên và vẽ đồ thị của hàm số',
     description: 'Lập bảng biến thiên và nhận dạng đồ thị dựa trên các tính chất của hàm số.',
-    youtubeUrl: 'https://www.youtube.com/watch?v=gVtCC8a5sDE',
+    youtubeUrl: 'https://www.youtube.com/watch?v=Nibwpe-MEA4&list=RDNibwpe-MEA4&start_radio=1',
     questions: [
       {
         id: 'q1-5-1',

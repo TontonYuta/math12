@@ -1,11 +1,12 @@
 import { Topic } from '../../types';
+import { chapter4ExamTopics } from './chapter4-exams';
 
-export const chapter4Topics: Topic[] = [
+export const chapter4CoreTopics: Topic[] = [
   {
     id: 'c4-t1',
     title: 'Thu thập và mô tả dữ liệu',
     description: 'Nhận biết loại dữ liệu, cách thu thập, phân loại và trình bày dữ liệu.',
-    youtubeUrl: 'https://www.youtube.com/watch?v=gVtCC8a5sDE',
+    youtubeUrl: 'https://www.youtube.com/watch?v=Nibwpe-MEA4&list=RDNibwpe-MEA4&start_radio=1',
     questions: [
       {
         id: 'q4-1-1',
@@ -98,7 +99,7 @@ export const chapter4Topics: Topic[] = [
     id: 'c4-t2',
     title: 'Bảng tần số và biểu đồ',
     description: 'Lập bảng tần số, tần suất và đọc các dạng biểu đồ thống kê.',
-    youtubeUrl: 'https://www.youtube.com/watch?v=gVtCC8a5sDE',
+    youtubeUrl: 'https://www.youtube.com/watch?v=Nibwpe-MEA4&list=RDNibwpe-MEA4&start_radio=1',
     questions: [
       {
         id: 'q4-2-1',
@@ -117,7 +118,7 @@ export const chapter4Topics: Topic[] = [
         text: 'Nếu một lớp có 40 học sinh, trong đó 10 học sinh thích môn Toán, thì tần suất là:',
         options: ['0,1', '0,2', '0,25', '0,4'],
         correctAnswerIndex: 2,
-        explanation: 'Tần suất là 10/40 = 0,25.'
+        explanation: 'Tần suất là $10/40 = 0,25$.'
       },
       {
         id: 'q4-2-3',
@@ -201,7 +202,7 @@ export const chapter4Topics: Topic[] = [
     id: 'c4-t3',
     title: 'Các số đặc trưng đo xu thế trung tâm',
     description: 'Tính số trung bình, trung vị và mốt của mẫu số liệu.',
-    youtubeUrl: 'https://www.youtube.com/watch?v=gVtCC8a5sDE',
+    youtubeUrl: 'https://www.youtube.com/watch?v=Nibwpe-MEA4&list=RDNibwpe-MEA4&start_radio=1',
     questions: [
       {
         id: 'q4-3-1',
@@ -289,7 +290,7 @@ export const chapter4Topics: Topic[] = [
     id: 'c4-t4',
     title: 'Các số đặc trưng đo mức độ phân tán',
     description: 'Tính khoảng biến thiên và nhận biết ý nghĩa độ phân tán của dữ liệu.',
-    youtubeUrl: 'https://www.youtube.com/watch?v=gVtCC8a5sDE',
+    youtubeUrl: 'https://www.youtube.com/watch?v=Nibwpe-MEA4&list=RDNibwpe-MEA4&start_radio=1',
     questions: [
       {
         id: 'q4-4-1',
@@ -382,7 +383,7 @@ export const chapter4Topics: Topic[] = [
     id: 'c4-t5',
     title: 'Ôn tập chương Phân tích và xử lí dữ liệu',
     description: 'Củng cố các khái niệm, bảng biểu, biểu đồ và các số đặc trưng của mẫu số liệu.',
-    youtubeUrl: 'https://www.youtube.com/watch?v=gVtCC8a5sDE',
+    youtubeUrl: 'https://www.youtube.com/watch?v=Nibwpe-MEA4&list=RDNibwpe-MEA4&start_radio=1',
     questions: [
       {
         id: 'q4-5-1',
@@ -461,4 +462,9 @@ export const chapter4Topics: Topic[] = [
       }
     ]
   }
+];
+
+export const chapter4Topics: Topic[] = [
+  ...chapter4CoreTopics,
+  ...chapter4ExamTopics
 ];
