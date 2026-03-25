@@ -22,12 +22,6 @@ export const ChapterList: React.FC<ChapterListProps> = ({ chapters, onSelectTopi
     return { completed, total: chapter.topics.length };
   };
 
-  const getYoutubeId = (url: string) => {
-    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
-    const match = url.match(regExp);
-    return match && match[2].length === 11 ? match[2] : null;
-  };
-
   const getTopicStars = (topic: Topic) => {
     const topicScore = progress.completedTopics[topic.id];
     if (topicScore === undefined) return 0;
@@ -129,7 +123,7 @@ export const ChapterList: React.FC<ChapterListProps> = ({ chapters, onSelectTopi
                   <div className="p-4 bg-gradient-to-b from-white/70 to-cyan-50/30 dark:from-[#0c1624]/40 dark:to-[#08131d]/20">
                     {chapter.topics.map((topic, index) => {
                       const isCompleted = progress.completedTopics[topic.id] !== undefined;
-                      const videoId = topic.youtubeUrl ? getYoutubeId(topic.youtubeUrl) : null;
+                      const hasYoutube = Boolean(topic.youtubeUrl);
                       const stars = getTopicStars(topic);
 
                       return (
@@ -147,14 +141,29 @@ export const ChapterList: React.FC<ChapterListProps> = ({ chapters, onSelectTopi
                               </span>
 
                               <div>
-                                <div
-                                  className={`font-black text-base transition-colors ${
-                                    isCompleted
-                                      ? 'text-emerald-600 dark:text-emerald-400'
-                                      : 'text-slate-800 dark:text-slate-100 group-hover:text-cyan-700 dark:group-hover:text-cyan-300'
-                                  }`}
-                                >
-                                  <MathText content={topic.title} />
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <div
+                                    className={`font-black text-base transition-colors ${
+                                      isCompleted
+                                        ? 'text-emerald-600 dark:text-emerald-400'
+                                        : 'text-slate-800 dark:text-slate-100 group-hover:text-cyan-700 dark:group-hover:text-cyan-300'
+                                    }`}
+                                  >
+                                    <MathText content={topic.title} />
+                                  </div>
+
+                                  {hasYoutube && (
+                                    <a
+                                      href={topic.youtubeUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      onClick={(e) => e.stopPropagation()}
+                                      title="Xem video hướng dẫn"
+                                      className="inline-flex items-center justify-center w-7 h-7 rounded-full border border-red-200 dark:border-red-900/40 bg-white dark:bg-slate-900/70 text-red-500 hover:scale-110 transition-transform shrink-0"
+                                    >
+                                      <Youtube size={15} className="fill-red-500" />
+                                    </a>
+                                  )}
                                 </div>
 
                                 <div className="text-sm text-slate-500 dark:text-slate-400 mt-1 line-clamp-1 font-medium">
@@ -192,30 +201,6 @@ export const ChapterList: React.FC<ChapterListProps> = ({ chapters, onSelectTopi
                               {isCompleted ? <CheckCircle size={26} /> : <PlayCircle size={26} />}
                             </div>
                           </button>
-
-                          {videoId && (
-                            <a
-                              href={topic.youtubeUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="mt-2 mb-4 ml-12 mr-3 block relative rounded-2xl overflow-hidden border border-slate-200 dark:border-cyan-900/40 group/video shadow-sm"
-                            >
-                              <img
-                                src={`https://img.youtube.com/vi/${videoId}/hqdefault.jpg`}
-                                alt="Video bài giảng"
-                                className="w-full h-36 sm:h-44 object-cover transition-transform duration-500 group-hover/video:scale-105"
-                              />
-                              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-slate-950/10 to-transparent group-hover/video:from-slate-950/50 transition-colors flex items-center justify-center">
-                                <div className="w-14 h-14 bg-white/92 dark:bg-[#0f1b2b]/92 backdrop-blur-sm rounded-full flex items-center justify-center text-red-600 shadow-xl transition-transform group-hover/video:scale-110 border border-white/40 dark:border-cyan-900/40">
-                                  <Youtube size={32} className="fill-red-600" />
-                                </div>
-                              </div>
-
-                              <div className="absolute left-3 bottom-3 px-3 py-1 rounded-full bg-slate-950/70 text-white text-[10px] font-black uppercase tracking-[0.18em]">
-                                Hướng dẫn nhanh
-                              </div>
-                            </a>
-                          )}
                         </div>
                       );
                     })}
