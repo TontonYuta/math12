@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import confetti from 'canvas-confetti';
 import { Capacitor } from '@capacitor/core';
@@ -22,17 +22,16 @@ import {
   X,
   Settings as SettingsIcon,
   RefreshCw,
-  User,
   ChevronDown,
   ChevronUp
 } from 'lucide-react';
 import { APP_VERSION, VERSION_CHECK_URL } from './config';
 
 type AppState = 'home' | 'quiz' | 'result' | 'review';
-type UserAnswer = number | boolean[] | string | null;
 
 const STORAGE_KEY = 'math_quiz_progress';
 const THEME_KEY = 'math_quiz_theme';
+const MUSIC_KEY = 'math_quiz_music';
 
 const initialProgress: UserProgress = {
   completedTopics: {},
@@ -43,26 +42,80 @@ export default function App() {
   const [appState, setAppState] = useState<AppState>('home');
   const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
   const [score, setScore] = useState(0);
-  const [totalQuestions, setTotalQuestions] = useState(0);
-  const [userAnswers, setUserAnswers] = useState<UserAnswer[]>([]);
-
+  const [userAnswers, setUserAnswers] = useState<number[]>([]);
   const [progress, setProgress] = useState<UserProgress>(initialProgress);
   const [newAchievement, setNewAchievement] = useState<Achievement | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [studentName, setStudentName] = useState<string>(() => localStorage.getItem('studentName') || '');
+  const [studentName, setStudentName] = useState<string>(() => {
+    if (typeof window === 'undefined') return '';
+    return localStorage.getItem('studentName') || '';
+  });
+
   const [showUpdateBanner, setShowUpdateBanner] = useState(false);
   const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
-  const [updateMessage, setUpdateMessage] = useState('Có màn chơi mới! Hãy cập nhật để tiếp tục cuộc phiêu lưu.');
+  const [updateMessage, setUpdateMessage] = useState('Trung tâm điều phối đã phát hành thử thách mới. Cập nhật ngay.');
   const [updateUrl, setUpdateUrl] = useState<string | null>(null);
   const [newVersion, setNewVersion] = useState<string>('');
   const [isUpdating, setIsUpdating] = useState(false);
   const [updateProgressText, setUpdateProgressText] = useState('');
   const [isAchievementsOpen, setIsAchievementsOpen] = useState(false);
 
+  const [isMusicEnabled, setIsMusicEnabled] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem(MUSIC_KEY) === 'on';
+  });
+
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
   useEffect(() => {
     localStorage.setItem('studentName', studentName);
   }, [studentName]);
+
+  useEffect(() => {
+    const savedProgress = localStorage.getItem(STORAGE_KEY);
+    if (savedProgress) {
+      try {
+        setProgress(JSON.parse(savedProgress));
+      } catch (e) {
+        console.error('Failed to parse progress', e);
+      }
+    }
+
+    const savedTheme = localStorage.getItem(THEME_KEY);
+    if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      setIsDarkMode(true);
+      document.documentElement.classList.add('dark');
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!audioRef.current) {
+      audioRef.current = new Audio('/audio/epic-study-theme.mp3');
+      audioRef.current.loop = true;
+      audioRef.current.volume = 0.35;
+    }
+
+    const audio = audioRef.current;
+
+    if (isMusicEnabled) {
+      audio.play().catch(() => {
+        console.warn('Autoplay bị chặn cho đến khi người dùng tương tác.');
+      });
+    } else {
+      audio.pause();
+    }
+
+    localStorage.setItem(MUSIC_KEY, isMusicEnabled ? 'on' : 'off');
+
+    return () => {
+      audio.pause();
+    };
+  }, [isMusicEnabled]);
+
+  const toggleMusic = () => {
+    setIsMusicEnabled((prev) => !prev);
+  };
 
   const checkForUpdates = async () => {
     setIsCheckingUpdate(true);
@@ -76,6 +129,10 @@ export default function App() {
       }
 
       const response = await fetch(VERSION_CHECK_URL);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
       const data = await response.json();
 
       if (data.version && data.version !== APP_VERSION) {
@@ -84,7 +141,7 @@ export default function App() {
         setNewVersion(data.version);
         setShowUpdateBanner(true);
       } else {
-        alert('Bạn đang ở phiên bản mới nhất!');
+        alert('Bạn đang dùng phiên bản mới nhất!');
       }
     } catch (error) {
       console.error('Lỗi kiểm tra phiên bản:', error);
@@ -98,24 +155,18 @@ export default function App() {
     if (Capacitor.isNativePlatform()) {
       try {
         setIsUpdating(true);
-        setUpdateProgressText('Đang kết nối cổng dịch chuyển...');
-
-        const downloadUrl =
-          updateUrl || `https://github.com/TontonYuta/math6/releases/download/v${newVersion}/update.zip`;
-
-        setUpdateProgressText('Đang tải bản nâng cấp...');
+        setUpdateProgressText('Đang kết nối máy chủ nhiệm vụ...');
 
         const version = await CapacitorUpdater.download({
-          url: downloadUrl,
-          version: newVersion
+          url: updateUrl || 'https://your-fallback-url.com/update.zip',
+          version: newVersion || Date.now().toString()
         });
 
-        setUpdateProgressText('Đang kích hoạt bản nâng cấp...');
-
+        setUpdateProgressText('Đang triển khai bản nâng cấp...');
         await CapacitorUpdater.set({ id: version.id });
       } catch (error: any) {
         console.error('Lỗi cập nhật OTA:', error);
-        alert('Cập nhật thất bại. Lỗi: ' + (error.message || 'Không thể tải file từ máy chủ.'));
+        alert('Cập nhật thất bại. Lỗi: ' + (error.message || JSON.stringify(error)));
         setIsUpdating(false);
       }
     } else {
@@ -126,23 +177,6 @@ export default function App() {
       }
     }
   };
-
-  useEffect(() => {
-    const savedProgress = localStorage.getItem(STORAGE_KEY);
-    if (savedProgress) {
-      try {
-        setProgress(JSON.parse(savedProgress));
-      } catch (e) {
-        console.error('Lỗi đọc dữ liệu', e);
-      }
-    }
-
-    const savedTheme = localStorage.getItem(THEME_KEY);
-    if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-      setIsDarkMode(true);
-      document.documentElement.classList.add('dark');
-    }
-  }, []);
 
   const toggleDarkMode = () => {
     setIsDarkMode((prev) => {
@@ -164,23 +198,30 @@ export default function App() {
   };
 
   const updateProgress = (topicId: string, finalScore: number) => {
-    const newProgress = { ...progress };
+    const newProgress: UserProgress = {
+      completedTopics: { ...progress.completedTopics },
+      unlockedAchievements: [...progress.unlockedAchievements]
+    };
 
     const currentBest = newProgress.completedTopics[topicId] || 0;
     if (finalScore > currentBest) {
       newProgress.completedTopics[topicId] = finalScore;
     }
 
-    const newlyUnlocked: string[] = [];
-    achievements.forEach((achievement) => {
-      if (!newProgress.unlockedAchievements.includes(achievement.id) && achievement.condition(newProgress)) {
-        newlyUnlocked.push(achievement.id);
-        setNewAchievement(achievement);
-        triggerConfetti();
-      }
-    });
+    const unlockedNow = achievements.filter(
+      (achievement) =>
+        !newProgress.unlockedAchievements.includes(achievement.id) &&
+        achievement.condition(newProgress)
+    );
 
-    newProgress.unlockedAchievements = [...newProgress.unlockedAchievements, ...newlyUnlocked];
+    if (unlockedNow.length > 0) {
+      newProgress.unlockedAchievements = [
+        ...newProgress.unlockedAchievements,
+        ...unlockedNow.map((a) => a.id)
+      ];
+      setNewAchievement(unlockedNow[0]);
+      triggerConfetti();
+    }
 
     setProgress(newProgress);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(newProgress));
@@ -191,7 +232,7 @@ export default function App() {
       particleCount: 150,
       spread: 70,
       origin: { y: 0.6 },
-      colors: ['#f59e0b', '#eab308', '#22c55e']
+      colors: ['#0f766e', '#1d4ed8', '#f59e0b', '#e5e7eb']
     });
   };
 
@@ -200,15 +241,12 @@ export default function App() {
     setAppState('quiz');
   };
 
-  const handleQuizComplete = (finalScore: number, total: number, answers: UserAnswer[]) => {
+  const handleQuizComplete = (finalScore: number, total: number, answers: number[]) => {
     setScore(finalScore);
-    setTotalQuestions(total);
     setUserAnswers(answers);
-
     if (selectedTopic) {
       updateProgress(selectedTopic.id, finalScore);
     }
-
     setAppState('result');
   };
 
@@ -221,264 +259,310 @@ export default function App() {
     setAppState('home');
     setSelectedTopic(null);
     setUserAnswers([]);
-    setScore(0);
-    setTotalQuestions(0);
   };
 
   const handleReview = () => {
     setAppState('review');
   };
 
+  const totalStars = chapters.reduce((acc, chapter) => {
+    return acc + chapter.topics.reduce((topicAcc, topic) => {
+      const topicScore = progress.completedTopics[topic.id];
+      if (topicScore !== undefined) {
+        const percentage = topicScore / topic.questions.length;
+        if (percentage >= 0.8) return topicAcc + 3;
+        if (percentage >= 0.5) return topicAcc + 2;
+        return topicAcc + 1;
+      }
+      return topicAcc;
+    }, 0);
+  }, 0);
+
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(251,191,36,0.14),_transparent_30%),radial-gradient(circle_at_bottom,_rgba(34,197,94,0.12),_transparent_30%)] bg-[#f8f5ea] dark:bg-[radial-gradient(circle_at_top,_rgba(251,191,36,0.14),_transparent_25%),radial-gradient(circle_at_bottom,_rgba(34,197,94,0.10),_transparent_30%)] dark:bg-[#0f172a] font-sans text-stone-900 dark:text-amber-50 selection:bg-amber-200 dark:selection:bg-amber-700/40 transition-colors duration-500 scroll-smooth antialiased">
-      <AnimatePresence>
-        {showUpdateBanner && (
-          <motion.div
-            initial={{ y: -50, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: -50, opacity: 0 }}
-            className="fixed top-0 left-0 right-0 z-[60] bg-gradient-to-r from-amber-600 via-yellow-500 to-amber-600 text-stone-950 p-3 text-center shadow-lg flex justify-center items-center gap-4 border-b border-amber-300"
-          >
-            <span className="font-black text-sm tracking-wide uppercase">
-              {isUpdating ? updateProgressText : updateMessage}
-            </span>
-            <button
-              onClick={handleUpdate}
-              disabled={isUpdating}
-              className="bg-stone-950 text-amber-300 px-5 py-1.5 rounded-full text-sm font-black hover:bg-stone-800 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm uppercase"
+    <div className="min-h-screen relative font-sans text-slate-900 dark:text-slate-100 selection:bg-cyan-300/40 transition-colors duration-500">
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        <div className="absolute inset-0 bg-[url('/images/academy-command-bg.jpg')] bg-cover bg-center bg-no-repeat" />
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-100/90 via-white/82 to-cyan-50/85 dark:from-[#07111f]/92 dark:via-[#0b1728]/88 dark:to-[#08131d]/94" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(34,211,238,0.16),_transparent_35%),radial-gradient(circle_at_bottom,_rgba(59,130,246,0.14),_transparent_30%)]" />
+        <div className="absolute inset-0 backdrop-blur-[1px]" />
+      </div>
+
+      <div className="relative z-10">
+        <AnimatePresence>
+          {showUpdateBanner && (
+            <motion.div
+              initial={{ y: -50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: -50, opacity: 0 }}
+              className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-cyan-700 via-sky-600 to-blue-700 text-white p-3 text-center shadow-lg flex justify-center items-center gap-4 border-b border-cyan-300/30"
             >
-              {isUpdating ? 'Đang xử lý...' : 'Nâng cấp'}
-            </button>
-            {!isUpdating && (
+              <span className="font-medium text-sm">{isUpdating ? updateProgressText : updateMessage}</span>
               <button
-                onClick={() => setShowUpdateBanner(false)}
-                className="text-stone-800 hover:text-black transition-colors"
+                onClick={handleUpdate}
+                disabled={isUpdating}
+                className="bg-white text-sky-700 px-4 py-1.5 rounded-full text-sm font-bold hover:bg-slate-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
               >
-                <X size={20} />
+                {isUpdating ? 'Đang xử lý...' : 'Cập nhật'}
               </button>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <main className="container mx-auto px-4 py-8 max-w-3xl">
-        <AnimatePresence mode="wait">
-          {appState === 'home' && (
-            <motion.div
-              key="home"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
-            >
-              <div className="flex justify-between items-center mb-8 sticky top-4 z-10">
-                <div className="flex items-center gap-3 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl px-5 py-3 rounded-[1.5rem] shadow-lg border-2 border-amber-200/80 dark:border-amber-500/20">
-                  <div className="p-2 rounded-xl bg-gradient-to-br from-amber-400 to-yellow-300 text-stone-900 shadow-sm">
-                    <User size={18} />
-                  </div>
-                  <input
-                    type="text"
-                    value={studentName}
-                    onChange={(e) => setStudentName(e.target.value)}
-                    placeholder="Nhập tên chiến binh..."
-                    className="bg-transparent border-none outline-none text-sm font-bold w-32 sm:w-48 text-stone-800 dark:text-amber-50 placeholder:text-stone-400 dark:placeholder:text-slate-500"
-                  />
-                </div>
+              {!isUpdating && (
                 <button
-                  onClick={() => setIsSettingsOpen(true)}
-                  className="p-3 text-stone-600 hover:text-amber-600 dark:text-slate-300 dark:hover:text-amber-300 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-[1.5rem] shadow-lg border-2 border-amber-200/80 dark:border-amber-500/20 transition-all hover:scale-105 active:scale-95"
-                  aria-label="Cài đặt"
-                >
-                  <SettingsIcon size={24} />
-                </button>
-              </div>
-
-              <div className="mb-8 rounded-[2rem] border-2 border-amber-300/70 dark:border-amber-500/20 bg-white/75 dark:bg-slate-900/70 backdrop-blur-xl p-6 shadow-xl">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="h-3 w-3 rounded-full bg-emerald-500 animate-pulse" />
-                  <span className="text-xs font-black uppercase tracking-[0.25em] text-amber-700 dark:text-amber-300">
-                    Bản đồ phiêu lưu
-                  </span>
-                </div>
-                <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-stone-900 dark:text-amber-50">
-                  Chinh phục từng ải Toán học
-                </h1>
-                <p className="mt-2 text-sm sm:text-base text-stone-600 dark:text-slate-300 font-medium">
-                  Mở khóa chương mới, tích lũy thành tích và vượt qua các thử thách như một nhà thám hiểm thực thụ.
-                </p>
-              </div>
-
-              <ChapterList chapters={chapters} onSelectTopic={handleSelectTopic} progress={progress} />
-
-              <div className="mt-12 max-w-2xl mx-auto px-2">
-                <div className="bg-white/80 dark:bg-slate-900/70 backdrop-blur-xl rounded-[2rem] border-2 border-amber-200/70 dark:border-amber-500/20 shadow-xl overflow-hidden transition-all duration-300">
-                  <button
-                    onClick={() => setIsAchievementsOpen(!isAchievementsOpen)}
-                    className="w-full flex items-center justify-between p-5 hover:bg-amber-50/50 dark:hover:bg-slate-800/40 transition-colors"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 bg-gradient-to-br from-amber-300 to-yellow-200 dark:from-amber-500/20 dark:to-yellow-500/20 rounded-2xl shadow-inner border border-amber-200/60 dark:border-amber-400/10">
-                        <Trophy className="text-amber-700 dark:text-amber-300" size={26} />
-                      </div>
-                      <div className="text-left">
-                        <h2 className="text-xl font-black text-stone-900 dark:text-amber-50 uppercase tracking-wider">
-                          Kho huy hiệu
-                        </h2>
-                        <p className="text-xs text-stone-500 dark:text-slate-400 mt-0.5 font-semibold">
-                          Đã mở khóa:{' '}
-                          <span className="text-emerald-600 dark:text-emerald-400 font-black">
-                            {progress.unlockedAchievements.length}
-                          </span>
-                          /{achievements.length}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-stone-500 dark:text-slate-400 bg-amber-100/60 dark:bg-slate-800 p-2 rounded-full">
-                      {isAchievementsOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-                    </div>
-                  </button>
-
-                  <AnimatePresence>
-                    {isAchievementsOpen && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3, ease: 'easeInOut' }}
-                      >
-                        <div className="p-5 pt-0 grid grid-cols-2 sm:grid-cols-4 gap-4 border-t border-amber-100/70 dark:border-slate-700/50 mt-2 pt-4">
-                          {achievements.map((achievement) => {
-                            const isUnlocked = progress.unlockedAchievements.includes(achievement.id);
-                            return (
-                              <div
-                                key={achievement.id}
-                                className={`p-4 rounded-[1.5rem] border-2 flex flex-col items-center text-center transition-all duration-300 ${
-                                  isUnlocked
-                                    ? 'bg-gradient-to-b from-amber-50 to-white dark:from-slate-800 dark:to-slate-900 border-amber-300 dark:border-amber-500/30 shadow-md'
-                                    : 'bg-stone-100/40 dark:bg-slate-800/20 border-stone-200/60 dark:border-slate-700/30 opacity-50 grayscale'
-                                }`}
-                              >
-                                <span className="text-3xl mb-3 drop-shadow-sm">{achievement.icon}</span>
-                                <h3 className="text-xs font-black text-stone-800 dark:text-amber-50 leading-tight mb-1">
-                                  {achievement.title}
-                                </h3>
-                                <p className="text-[10px] text-stone-500 dark:text-slate-400 leading-tight">
-                                  {achievement.description}
-                                </p>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              </div>
-            </motion.div>
-          )}
-
-          {appState === 'quiz' && selectedTopic && (
-            <motion.div
-              key="quiz"
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -50 }}
-              transition={{ duration: 0.3 }}
-            >
-              <Quiz topic={selectedTopic} onBack={handleHome} onComplete={handleQuizComplete} />
-            </motion.div>
-          )}
-
-          {appState === 'result' && selectedTopic && (
-            <motion.div
-              key="result"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.3 }}
-            >
-              <Result
-                score={score}
-                total={totalQuestions}
-                topicTitle={selectedTopic.title}
-                onRetry={handleRetry}
-                onHome={handleHome}
-                onReview={handleReview}
-              />
-            </motion.div>
-          )}
-
-          {appState === 'review' && selectedTopic && (
-            <motion.div
-              key="review"
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -50 }}
-              transition={{ duration: 0.3 }}
-            >
-              <Review topic={selectedTopic} userAnswers={userAnswers} onBack={() => setAppState('result')} />
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </main>
-
-      <footer className="py-8 text-center text-xs text-stone-500 dark:text-slate-500">
-        <button
-          onClick={checkForUpdates}
-          disabled={isCheckingUpdate}
-          className="hover:text-amber-600 dark:hover:text-amber-300 transition-colors flex items-center justify-center gap-2 mx-auto uppercase tracking-[0.25em] font-black"
-        >
-          <RefreshCw size={14} className={isCheckingUpdate ? 'animate-spin' : ''} />
-          {isCheckingUpdate ? 'Đang kiểm tra...' : `Phiên bản: ${APP_VERSION}`}
-        </button>
-      </footer>
-
-      <AnimatePresence>
-        {newAchievement && (
-          <motion.div
-            initial={{ opacity: 0, y: 100, scale: 0.5 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.5 }}
-            className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[70] w-[90%] max-w-sm"
-          >
-            <div className="bg-gradient-to-br from-amber-500 via-yellow-400 to-amber-500 text-stone-950 p-6 rounded-[2rem] shadow-2xl flex items-center gap-4 relative overflow-hidden border-2 border-yellow-200">
-              <div className="absolute top-0 right-0 p-3">
-                <button
-                  onClick={() => setNewAchievement(null)}
-                  className="text-stone-800/60 hover:text-black transition-colors active:scale-90"
+                  onClick={() => setShowUpdateBanner(false)}
+                  className="text-cyan-100 hover:text-white"
+                  aria-label="Đóng thông báo cập nhật"
                 >
                   <X size={20} />
                 </button>
-              </div>
-              <div className="bg-white/30 p-3 rounded-2xl backdrop-blur-sm shadow-inner border border-white/40">
-                <span className="text-4xl drop-shadow-md">{newAchievement.icon}</span>
-              </div>
-              <div>
-                <div className="flex items-center gap-1 mb-1">
-                  <Star size={14} className="fill-stone-900 text-stone-900" />
-                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-800">
-                    Huy hiệu mới!
-                  </span>
-                </div>
-                <h3 className="text-lg font-black leading-tight tracking-tight">{newAchievement.title}</h3>
-                <p className="text-xs text-stone-800/90 mt-1 font-semibold">{newAchievement.description}</p>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-      <AnimatePresence>
-        {isSettingsOpen && (
-          <Settings
-            isOpen={isSettingsOpen}
-            onClose={() => setIsSettingsOpen(false)}
-            isDarkMode={isDarkMode}
-            onToggleDarkMode={toggleDarkMode}
-            onResetProgress={resetProgress}
-          />
-        )}
-      </AnimatePresence>
+        <main className="container mx-auto px-4 py-8 max-w-3xl bg-transparent">
+          <AnimatePresence mode="wait">
+            {appState === 'home' && (
+              <motion.div
+                key="home"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="flex flex-wrap justify-between items-center mb-6 bg-white/80 dark:bg-[#0c1624]/82 backdrop-blur-md p-3 sm:p-4 rounded-[2rem] border border-slate-200/70 dark:border-cyan-800/50 shadow-[0_10px_30px_rgba(0,0,0,0.12)] gap-3">
+                  <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-[120px]">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 shrink-0 bg-gradient-to-br from-cyan-500 via-sky-500 to-blue-700 rounded-full flex items-center justify-center text-lg sm:text-xl text-white border border-white/30 shadow-[0_6px_16px_rgba(14,165,233,0.35)]">
+                      ✦
+                    </div>
+                    <input
+                      type="text"
+                      value={studentName}
+                      onChange={(e) => setStudentName(e.target.value)}
+                      placeholder="Tên học viên..."
+                      className="bg-transparent border-none outline-none text-sm sm:text-base font-black w-full text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 truncate"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+                    <div className="flex items-center gap-1.5 bg-gradient-to-r from-amber-50 to-yellow-100 dark:from-amber-500/10 dark:to-yellow-500/10 px-3 py-1.5 sm:py-2 rounded-2xl border border-amber-200/80 dark:border-amber-500/20 shadow-sm">
+                      <Star className="text-amber-500 fill-amber-500" size={18} />
+                      <span className="font-black text-amber-700 dark:text-amber-300 text-sm sm:text-base">
+                        {totalStars}
+                      </span>
+                    </div>
+
+                    <button
+                      onClick={() => setIsSettingsOpen(true)}
+                      className="p-2 sm:p-3 bg-gradient-to-b from-slate-50 to-cyan-50 dark:from-[#132235] dark:to-[#0d1a29] rounded-2xl border border-slate-200 dark:border-cyan-800/60 text-slate-700 dark:text-cyan-200 active:scale-95 transition-all shadow-sm"
+                      aria-label="Cài đặt"
+                    >
+                      <SettingsIcon size={20} />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="mb-6 rounded-[2rem] border border-slate-200/80 dark:border-cyan-800/40 bg-white/82 dark:bg-[#0c1624]/80 backdrop-blur-md p-5 sm:p-6 shadow-[0_10px_24px_rgba(0,0,0,0.10)]">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="h-2.5 w-2.5 rounded-full bg-cyan-500 animate-pulse" />
+                    <span className="text-[11px] sm:text-xs font-black uppercase tracking-[0.22em] text-cyan-700 dark:text-cyan-300">
+                      Trung tâm huấn luyện
+                    </span>
+                  </div>
+                  <h1 className="text-2xl sm:text-4xl font-black tracking-tight text-slate-900 dark:text-slate-50">
+                    Lộ trình chinh phục Toán học
+                  </h1>
+                  <p className="mt-2 text-sm sm:text-base text-slate-600 dark:text-slate-300 font-semibold">
+                    Hoàn thành từng chuyên đề, tích lũy sao năng lực và mở khóa hồ sơ thành tựu.
+                  </p>
+                </div>
+
+                <ChapterList chapters={chapters} onSelectTopic={handleSelectTopic} progress={progress} />
+
+                <div className="mt-6 max-w-2xl mx-auto px-1 sm:px-2">
+                  <div className="bg-white/88 dark:bg-[#0c1624]/88 backdrop-blur-md rounded-[2rem] border border-slate-200/70 dark:border-cyan-800/40 shadow-[0_10px_24px_rgba(0,0,0,0.12)] overflow-hidden">
+                    <button
+                      onClick={() => setIsAchievementsOpen(!isAchievementsOpen)}
+                      className="w-full flex items-center justify-between p-3 sm:p-4 hover:bg-slate-50/80 dark:hover:bg-slate-900/20 transition-colors active:bg-slate-100/70"
+                      aria-expanded={isAchievementsOpen}
+                      aria-label="Mở hoặc đóng hồ sơ thành tựu"
+                    >
+                      <div className="flex items-center gap-3 sm:gap-4">
+                        <div className="p-2 sm:p-3 bg-gradient-to-br from-cyan-500 via-sky-500 to-blue-700 rounded-2xl shadow-inner border border-cyan-200/30">
+                          <Trophy className="text-white" size={24} />
+                        </div>
+                        <div className="text-left">
+                          <h2 className="text-lg sm:text-xl font-black text-slate-800 dark:text-cyan-100 uppercase tracking-wider">
+                            Hồ sơ thành tựu
+                          </h2>
+                          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-0.5 font-bold">
+                            Năng lực đã mở khóa:{' '}
+                            <span className="text-cyan-600 dark:text-cyan-300">
+                              {progress.unlockedAchievements.length}
+                            </span>
+                            /{achievements.length}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="text-slate-500 dark:text-cyan-200/70 bg-slate-50 dark:bg-[#132235] p-2 rounded-2xl border border-slate-200 dark:border-cyan-800/50">
+                        {isAchievementsOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                      </div>
+                    </button>
+
+                    <AnimatePresence>
+                      {isAchievementsOpen && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.3, ease: 'easeInOut' }}
+                        >
+                          <div className="p-4 pt-0 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 border-t border-slate-100 dark:border-cyan-950/40 mt-2 pt-4">
+                            {achievements.map((achievement) => {
+                              const isUnlocked = progress.unlockedAchievements.includes(achievement.id);
+                              return (
+                                <div
+                                  key={achievement.id}
+                                  className={`p-3 sm:p-4 rounded-[1.5rem] border flex flex-col items-center text-center transition-all duration-300 ${
+                                    isUnlocked
+                                      ? 'bg-gradient-to-b from-cyan-50 to-white dark:from-cyan-950/20 dark:to-slate-950/10 border-cyan-200 dark:border-cyan-700/40 shadow-sm'
+                                      : 'bg-white/40 dark:bg-slate-900/20 border-slate-200/70 dark:border-slate-700 opacity-60 grayscale'
+                                  }`}
+                                >
+                                  <span className="text-3xl sm:text-4xl mb-2 sm:mb-3 drop-shadow-md">
+                                    {achievement.icon}
+                                  </span>
+                                  <h3 className="text-[11px] sm:text-xs font-black text-slate-700 dark:text-slate-100 leading-tight mb-1">
+                                    {achievement.title}
+                                  </h3>
+                                  <p className="text-[9px] sm:text-[10px] font-bold text-slate-500 dark:text-slate-400 leading-tight">
+                                    {achievement.description}
+                                  </p>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {appState === 'quiz' && selectedTopic && (
+              <motion.div
+                key="quiz"
+                initial={{ opacity: 0, x: 50 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -50 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Quiz topic={selectedTopic} onBack={handleHome} onComplete={handleQuizComplete} />
+              </motion.div>
+            )}
+
+            {appState === 'result' && selectedTopic && (
+              <motion.div
+                key="result"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Result
+                  score={score}
+                  total={selectedTopic.questions.length}
+                  topicTitle={selectedTopic.title}
+                  onRetry={handleRetry}
+                  onHome={handleHome}
+                  onReview={handleReview}
+                />
+              </motion.div>
+            )}
+
+            {appState === 'review' && selectedTopic && (
+              <motion.div
+                key="review"
+                initial={{ opacity: 0, x: 50 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -50 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Review
+                  topic={selectedTopic}
+                  userAnswers={userAnswers}
+                  onBack={() => setAppState('result')}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </main>
+
+        <footer className="py-6 text-center text-xs text-slate-600/80 dark:text-slate-400">
+          <button
+            onClick={checkForUpdates}
+            disabled={isCheckingUpdate}
+            className="hover:text-cyan-700 dark:hover:text-cyan-300 transition-colors flex items-center justify-center gap-2 mx-auto font-bold tracking-wide"
+          >
+            <RefreshCw size={14} className={isCheckingUpdate ? 'animate-spin' : ''} />
+            {isCheckingUpdate ? 'Đang kiểm tra...' : `Trung tâm cập nhật: ${APP_VERSION}`}
+          </button>
+        </footer>
+
+        <AnimatePresence>
+          {newAchievement && (
+            <motion.div
+              initial={{ opacity: 0, y: 100, scale: 0.5 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.5 }}
+              className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-sm"
+            >
+              <div className="bg-gradient-to-r from-cyan-700 via-sky-600 to-blue-700 text-white p-6 rounded-[2rem] shadow-2xl flex items-center gap-4 relative overflow-hidden border border-cyan-200/30">
+                <div className="absolute top-0 right-0 p-2">
+                  <button
+                    onClick={() => setNewAchievement(null)}
+                    className="text-white/50 hover:text-white"
+                    aria-label="Đóng thông báo thành tích"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+
+                <div className="bg-white/20 p-3 rounded-2xl">
+                  <span className="text-4xl">{newAchievement.icon}</span>
+                </div>
+
+                <div>
+                  <div className="flex items-center gap-1 mb-1">
+                    <Star size={14} className="fill-amber-300 text-amber-300" />
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-100">
+                      Đã thăng hạng!
+                    </span>
+                  </div>
+                  <h3 className="text-lg font-black leading-tight">{newAchievement.title}</h3>
+                  <p className="text-xs text-slate-100/90 mt-1">{newAchievement.description}</p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {isSettingsOpen && (
+            <Settings
+              isOpen={isSettingsOpen}
+              onClose={() => setIsSettingsOpen(false)}
+              isDarkMode={isDarkMode}
+              onToggleDarkMode={toggleDarkMode}
+              onResetProgress={resetProgress}
+              appVersion={APP_VERSION}
+              isCheckingUpdate={isCheckingUpdate}
+              onCheckUpdate={checkForUpdates}
+              isMusicEnabled={isMusicEnabled}
+              onToggleMusic={toggleMusic}
+            />
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }
